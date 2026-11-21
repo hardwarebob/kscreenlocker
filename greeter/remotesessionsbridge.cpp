@@ -6,6 +6,7 @@
 #include "remotesessionsbridge.h"
 #include "pamauthenticators.h"
 
+#include <QDBusArgument>
 #include <QDBusConnection>
 #include <QDBusInterface>
 #include <QDBusMessage>
@@ -64,7 +65,16 @@ void RemoteSessionsBridge::refresh()
         return;
     }
 
-    const QVariantList next = iface.property("activeSessions").toList();
+    const QVariantList raw = iface.property("activeSessions").toList();
+    QVariantList next;
+    next.reserve(raw.size());
+    for (const QVariant &entry : raw) {
+        if (entry.canConvert<QDBusArgument>()) {
+            next.append(qdbus_cast<QVariantMap>(entry.value<QDBusArgument>()));
+        } else {
+            next.append(entry.toMap());
+        }
+    }
     if (next != m_activeSessions) {
         m_activeSessions = next;
         Q_EMIT activeSessionsChanged();
