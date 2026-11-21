@@ -31,6 +31,47 @@ Item {
         id: sessionManagment
     }
 
+    Rectangle {
+        visible: typeof remoteSessions !== "undefined" && remoteSessions.hasActiveSessions
+        anchors.top: parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.topMargin: Kirigami.Units.largeSpacing * 2
+        z: 10
+        radius: Kirigami.Units.cornerRadius
+        color: Qt.rgba(0, 0, 0, 0.7)
+        width: remoteBannerRow.implicitWidth + Kirigami.Units.largeSpacing * 2
+        height: remoteBannerRow.implicitHeight + Kirigami.Units.largeSpacing
+
+        Row {
+            id: remoteBannerRow
+            anchors.centerIn: parent
+            spacing: Kirigami.Units.largeSpacing
+
+            QQC2.Label {
+                anchors.verticalCenter: parent.verticalCenter
+                color: "white"
+                text: {
+                    if (typeof remoteSessions === "undefined" || !remoteSessions.hasActiveSessions) {
+                        return "";
+                    }
+                    const s = remoteSessions.activeSessions[0];
+                    return i18nd("kscreenlocker_greet", "Active remote session: %1 (%2)", s.provider, s.clientName);
+                }
+            }
+
+            QQC2.CheckBox {
+                anchors.verticalCenter: parent.verticalCenter
+                checked: typeof remoteSessions !== "undefined" && remoteSessions.disconnectOnUnlock
+                text: i18nd("kscreenlocker_greet", "Disconnect on unlock")
+                onToggled: {
+                    if (typeof remoteSessions !== "undefined") {
+                        remoteSessions.disconnectOnUnlock = checked;
+                    }
+                }
+            }
+        }
+    }
+
     KSvg.FrameSvgItem {
         id: dialog
 

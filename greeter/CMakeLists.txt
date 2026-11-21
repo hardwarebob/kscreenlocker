@@ -29,9 +29,11 @@ set(kscreenlocker_greet_SRCS
    greeterapp.cpp
    main.cpp
    noaccessnetworkaccessmanagerfactory.cpp
+   remotesessionsbridge.cpp
    ../logind.cpp
    greeterapp.h
    noaccessnetworkaccessmanagerfactory.h
+   remotesessionsbridge.h
    ../logind.h
 )
 

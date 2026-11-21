@@ -57,6 +57,7 @@ SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "pamauthenticator.h"
 #include "pamauthenticators.h"
+#include "remotesessionsbridge.h"
 
 // this is usable to fake a "screensaver" installation for testing
 // *must* be "0" for every public commit!
@@ -317,6 +318,9 @@ QQuickView *UnlockApp::createViewForScreen(QScreen *screen)
         qCDebug(KSCREENLOCKER_GREET) << "Greeter quit signal received, checking if we are unlocked";
         if (m_authenticators->isUnlocked()) {
             qCDebug(KSCREENLOCKER_GREET) << "Unlocked";
+            if (m_remoteSessionsBridge && m_remoteSessionsBridge->disconnectOnUnlock()) {
+                m_remoteSessionsBridge->requestDisconnectAll();
+            }
             // Mind that we can quit properly. All the blocking PAM tech is in subprocesses that will get reaped either
             // by destructors or by themselves once they notice we are gone.
             qApp->quit();
@@ -325,10 +329,14 @@ QQuickView *UnlockApp::createViewForScreen(QScreen *screen)
         }
     });
 
+    if (!m_remoteSessionsBridge) {
+        m_remoteSessionsBridge = new RemoteSessionsBridge(m_authenticators, this);
+    }
     context->setContextProperty(QStringLiteral("kscreenlocker_userName"), m_userName);
     context->setContextProperty(QStringLiteral("kscreenlocker_userImage"), m_userImage);
     context->setContextProperty(QStringLiteral("authenticator"), m_authenticators);
     context->setContextProperty(QStringLiteral("config"), m_shellIntegration->configuration());
+    context->setContextProperty(QStringLiteral("remoteSessions"), m_remoteSessionsBridge);
 
     const KConfigGroup cfg = KScreenSaverSettingsBase::self()
                                  ->sharedConfig()

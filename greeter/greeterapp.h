@@ -27,6 +27,7 @@ class Authenticator;
 class LogindIntegration;
 
 class PamAuthenticators;
+class RemoteSessionsBridge;
 
 namespace ScreenLocker
 {
@@ -81,6 +82,7 @@ private:
     bool m_testing;
     bool m_immediateLock;
     PamAuthenticators *m_authenticators;
+    RemoteSessionsBridge *m_remoteSessionsBridge = nullptr;
     int m_graceTime;
     bool m_noLock;
 
