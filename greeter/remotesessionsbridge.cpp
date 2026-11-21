@@ -7,9 +7,9 @@
 #include "pamauthenticators.h"
 
 #include <QDBusConnection>
+#include <QDBusInterface>
 #include <QDBusMessage>
 #include <QDBusPendingCall>
-#include <QDBusVariant>
 #include <QVariantMap>
 
 static constexpr QLatin1StringView KWIN_SERVICE("org.kde.KWin");
@@ -55,12 +55,8 @@ void RemoteSessionsBridge::onActiveSessionsChanged()
 
 void RemoteSessionsBridge::refresh()
 {
-    QDBusMessage msg =
-        QDBusMessage::createMethodCall(KWIN_SERVICE, REMOTE_SESSIONS_PATH, QStringLiteral("org.freedesktop.DBus.Properties"), QStringLiteral("Get"));
-    msg << REMOTE_SESSIONS_IFACE << QStringLiteral("activeSessions");
-
-    const QDBusMessage reply = QDBusConnection::sessionBus().call(msg, QDBus::Block, 500);
-    if (reply.type() != QDBusMessage::ReplyMessage || reply.arguments().isEmpty()) {
+    QDBusInterface iface(KWIN_SERVICE, REMOTE_SESSIONS_PATH, REMOTE_SESSIONS_IFACE, QDBusConnection::sessionBus());
+    if (!iface.isValid()) {
         if (!m_activeSessions.isEmpty()) {
             m_activeSessions.clear();
             Q_EMIT activeSessionsChanged();
@@ -68,7 +64,7 @@ void RemoteSessionsBridge::refresh()
         return;
     }
 
-    const QVariantList next = reply.arguments().first().value<QDBusVariant>().variant().toList();
+    const QVariantList next = iface.property("activeSessions").toList();
     if (next != m_activeSessions) {
         m_activeSessions = next;
         Q_EMIT activeSessionsChanged();
